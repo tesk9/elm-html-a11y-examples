@@ -25,7 +25,7 @@ type Classes
 snippets : List Snippet
 snippets =
     [ Css.class Container
-        []
+        [ margin2 zero (px 20) ]
     ]
 
 

@@ -20,31 +20,117 @@ view model =
     div
         [ class [ Container ] ]
         [ Html.CssHelpers.style css
+        , h1 [] [ text "Html.A11y View Examples" ]
+        , h2 [] [ text "Inputs" ]
         , viewInputs
         ]
 
 
 viewInputs : Html msg
 viewInputs =
+    div []
+        [ viewTextInputVariations
+        , viewRadioInputVariations
+        , viewCheckboxInputVariations
+        ]
+
+
+viewTextInputVariations : Html msg
+viewTextInputVariations =
     let
-        inputty typeAndValue =
-            { label = text "Label"
-            , typeAndValue = typeAndValue
+        inputModel =
+            { label = text "Text Label"
+            , typeAndValue = textInput "Value"
             , attributes = []
             }
     in
-        div []
-            [ leftLabeledInput <| inputty (textInput "Tessa")
-            , rightLabeledInput <| inputty (textInput "Tessa")
-            , br [] []
-            , leftLabeledInput <| inputty (radioInput "GroupName" "Radio 1" False)
-            , rightLabeledInput <| inputty (radioInput "GroupName" "Radio 2" True)
-            , br [] []
-            , leftLabeledInput <| inputty (checkboxInput "Checkbox 1" (Just False))
-            , leftLabeledInput <| inputty (checkboxInput "Checkbox 1" Nothing)
-            , rightLabeledInput <| inputty (checkboxInput "Checkbox 2" (Just True))
-            , invisibleLabeledInput (inputty (textInput "Is this hidden???")) "input-id"
-            ]
+        viewInputType "Text"
+            { left = [ leftLabeledInput inputModel ]
+            , right = [ rightLabeledInput inputModel ]
+            , invisible = [ invisibleLabeledInput inputModel ("input-id-text") ]
+            }
+
+
+viewRadioInputVariations : Html msg
+viewRadioInputVariations =
+    let
+        inputModel groupName =
+            { label = text "Radio Label"
+            , typeAndValue = radioInput groupName "Value" False
+            , attributes = []
+            }
+    in
+        viewInputType "Radio"
+            { left =
+                [ leftLabeledInput <| inputModel "left"
+                , leftLabeledInput <| inputModel "left"
+                ]
+            , right =
+                [ rightLabeledInput <| inputModel "right"
+                , rightLabeledInput <| inputModel "right"
+                ]
+            , invisible =
+                [ invisibleLabeledInput (inputModel "invisible") ("input-id-radio-1")
+                , invisibleLabeledInput (inputModel "invisible") ("input-id-radio-2")
+                ]
+            }
+
+
+viewCheckboxInputVariations : Html msg
+viewCheckboxInputVariations =
+    let
+        inputModel status =
+            { label = text <| "Checkbox Label, Status: " ++ toString status
+            , typeAndValue = checkboxInput "Value" status
+            , attributes = []
+            }
+    in
+        viewInputType "Checkbox"
+            { left =
+                [ leftLabeledInput <| inputModel (Just True)
+                , leftLabeledInput <| inputModel Nothing
+                , leftLabeledInput <| inputModel (Just False)
+                ]
+            , right =
+                [ rightLabeledInput <| inputModel (Just True)
+                , rightLabeledInput <| inputModel Nothing
+                , rightLabeledInput <| inputModel (Just False)
+                ]
+            , invisible =
+                [ invisibleLabeledInput (inputModel (Just True)) ("input-id-checkbox-1")
+                , invisibleLabeledInput (inputModel Nothing) ("input-id-checkbox-2")
+                , invisibleLabeledInput (inputModel (Just False)) ("input-id-checkbox-3")
+                ]
+            }
+
+
+viewInputType : String -> { left : List (Html msg), right : List (Html msg), invisible : List (Html msg) } -> Html msg
+viewInputType name { left, right, invisible } =
+    div []
+        [ h3 [] [ text <| name ++ " Inputs" ]
+        , leftLabeledInputHeader
+        , div [] left
+        , rightLabeledInputHeader
+        , div [] right
+        , invisibleLabeledInputHeader
+        , div [] invisible
+        , br [] []
+        ]
+
+
+leftLabeledInputHeader : Html msg
+leftLabeledInputHeader =
+    h4 [] [ text "leftLabeledInput:" ]
+
+
+rightLabeledInputHeader : Html msg
+rightLabeledInputHeader =
+    h4 [] [ text "rightLabeledInput:" ]
+
+
+invisibleLabeledInputHeader : Html msg
+invisibleLabeledInputHeader =
+    h4 [] [ text "invisibleLabeledInput:" ]
 
 
 
