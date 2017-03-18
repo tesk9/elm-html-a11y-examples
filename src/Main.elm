@@ -45,9 +45,9 @@ viewTextInputVariations =
             }
     in
         viewInputType "Text"
-            { left = [ leftLabeledInput inputModel ]
-            , right = [ rightLabeledInput inputModel ]
-            , invisible = [ invisibleLabeledInput inputModel ("input-id-text") ]
+            { left = [ inputModel ]
+            , right = [ inputModel ]
+            , invisible = [ (,) inputModel ("input-id-text") ]
             }
 
 
@@ -61,17 +61,11 @@ viewRadioInputVariations =
             }
     in
         viewInputType "Radio"
-            { left =
-                [ leftLabeledInput <| inputModel "left"
-                , leftLabeledInput <| inputModel "left"
-                ]
-            , right =
-                [ rightLabeledInput <| inputModel "right"
-                , rightLabeledInput <| inputModel "right"
-                ]
+            { left = [ inputModel "left", inputModel "left" ]
+            , right = [ inputModel "right", inputModel "right" ]
             , invisible =
-                [ invisibleLabeledInput (inputModel "invisible") ("input-id-radio-1")
-                , invisibleLabeledInput (inputModel "invisible") ("input-id-radio-2")
+                [ (,) (inputModel "invisible") ("input-id-radio-1")
+                , (,) (inputModel "invisible") ("input-id-radio-2")
                 ]
             }
 
@@ -86,34 +80,32 @@ viewCheckboxInputVariations =
             }
     in
         viewInputType "Checkbox"
-            { left =
-                [ leftLabeledInput <| inputModel (Just True)
-                , leftLabeledInput <| inputModel Nothing
-                , leftLabeledInput <| inputModel (Just False)
-                ]
-            , right =
-                [ rightLabeledInput <| inputModel (Just True)
-                , rightLabeledInput <| inputModel Nothing
-                , rightLabeledInput <| inputModel (Just False)
-                ]
+            { left = [ inputModel (Just True), inputModel Nothing, inputModel (Just False) ]
+            , right = [ inputModel (Just True), inputModel Nothing, inputModel (Just False) ]
             , invisible =
-                [ invisibleLabeledInput (inputModel (Just True)) ("input-id-checkbox-1")
-                , invisibleLabeledInput (inputModel Nothing) ("input-id-checkbox-2")
-                , invisibleLabeledInput (inputModel (Just False)) ("input-id-checkbox-3")
+                [ (,) (inputModel (Just True)) ("input-id-checkbox-1")
+                , (,) (inputModel Nothing) ("input-id-checkbox-2")
+                , (,) (inputModel (Just False)) ("input-id-checkbox-3")
                 ]
             }
 
 
-viewInputType : String -> { left : List (Html msg), right : List (Html msg), invisible : List (Html msg) } -> Html msg
+viewInputType :
+    String
+    -> { left : List (Input msg)
+       , right : List (Input msg)
+       , invisible : List ( Input msg, String )
+       }
+    -> Html msg
 viewInputType name { left, right, invisible } =
     div []
         [ h3 [] [ text <| name ++ " Inputs" ]
         , leftLabeledInputHeader
-        , div [] left
+        , div [] (List.map leftLabeledInput left)
         , rightLabeledInputHeader
-        , div [] right
+        , div [] (List.map rightLabeledInput right)
         , invisibleLabeledInputHeader
-        , div [] invisible
+        , div [] (List.map (uncurry invisibleLabeledInput) invisible)
         , br [] []
         ]
 
