@@ -5,9 +5,14 @@ module Main exposing (main)
 -}
 
 import Html exposing (..)
-import Html.A11y exposing (..)
 import Html.CssHelpers
 import Styles exposing (..)
+import Views.Images as Images
+import Views.Inputs as Inputs
+import List.Zipper as Zipper
+import Tabs.Model
+import Tabs.Update
+import Tabs.View
 
 
 {- VIEW -}
@@ -21,108 +26,13 @@ view model =
         [ class [ Container ] ]
         [ Html.CssHelpers.style css
         , h1 [] [ text "Html.A11y View Examples" ]
-        , h2 [] [ text "Inputs" ]
-        , viewInputs
+        , Html.map TabsMsg <| Tabs.View.view model.tabsModel
         ]
 
 
-viewInputs : Html msg
-viewInputs =
-    div []
-        [ viewTextInputVariations
-        , viewRadioInputVariations
-        , viewCheckboxInputVariations
-        ]
-
-
-viewTextInputVariations : Html msg
-viewTextInputVariations =
-    let
-        inputModel =
-            { label = text "Text Label"
-            , typeAndValue = textInput "Value"
-            , attributes = []
-            }
-    in
-        viewInputType "Text"
-            { left = [ inputModel ]
-            , right = [ inputModel ]
-            , invisible = [ (,) inputModel ("input-id-text") ]
-            }
-
-
-viewRadioInputVariations : Html msg
-viewRadioInputVariations =
-    let
-        inputModel groupName =
-            { label = text "Radio Label"
-            , typeAndValue = radioInput groupName "Value" False
-            , attributes = []
-            }
-    in
-        viewInputType "Radio"
-            { left = [ inputModel "left", inputModel "left" ]
-            , right = [ inputModel "right", inputModel "right" ]
-            , invisible =
-                [ (,) (inputModel "invisible") ("input-id-radio-1")
-                , (,) (inputModel "invisible") ("input-id-radio-2")
-                ]
-            }
-
-
-viewCheckboxInputVariations : Html msg
-viewCheckboxInputVariations =
-    let
-        inputModel status =
-            { label = text <| "Checkbox Label, Status: " ++ toString status
-            , typeAndValue = checkboxInput "Value" status
-            , attributes = []
-            }
-    in
-        viewInputType "Checkbox"
-            { left = [ inputModel (Just True), inputModel Nothing, inputModel (Just False) ]
-            , right = [ inputModel (Just True), inputModel Nothing, inputModel (Just False) ]
-            , invisible =
-                [ (,) (inputModel (Just True)) ("input-id-checkbox-1")
-                , (,) (inputModel Nothing) ("input-id-checkbox-2")
-                , (,) (inputModel (Just False)) ("input-id-checkbox-3")
-                ]
-            }
-
-
-viewInputType :
-    String
-    -> { left : List (Input msg)
-       , right : List (Input msg)
-       , invisible : List ( Input msg, String )
-       }
-    -> Html msg
-viewInputType name { left, right, invisible } =
-    div []
-        [ h3 [] [ text <| name ++ " Inputs" ]
-        , leftLabeledInputHeader
-        , div [] (List.map leftLabeledInput left)
-        , rightLabeledInputHeader
-        , div [] (List.map rightLabeledInput right)
-        , invisibleLabeledInputHeader
-        , div [] (List.map (uncurry invisibleLabeledInput) invisible)
-        , br [] []
-        ]
-
-
-leftLabeledInputHeader : Html msg
-leftLabeledInputHeader =
-    h4 [] [ text "leftLabeledInput:" ]
-
-
-rightLabeledInputHeader : Html msg
-rightLabeledInputHeader =
-    h4 [] [ text "rightLabeledInput:" ]
-
-
-invisibleLabeledInputHeader : Html msg
-invisibleLabeledInputHeader =
-    h4 [] [ text "invisibleLabeledInput:" ]
+sectionHeader : String -> Html msg
+sectionHeader header =
+    h2 [] [ text header ]
 
 
 
@@ -130,12 +40,25 @@ invisibleLabeledInputHeader =
 
 
 type alias Model =
-    {}
+    { tabsModel : Tabs.Model.Model }
 
 
 model : Model
 model =
-    {}
+    { tabsModel = tabsModel }
+
+
+tabsModel : Tabs.Model.Model
+tabsModel =
+    { tabPanels =
+        [ ( "Inputs", Inputs.view )
+        , ( "Images", Images.view )
+        ]
+            |> List.indexedMap (\index ( header, content ) -> ( index, sectionHeader header, content ))
+            |> Zipper.fromList
+            |> Maybe.withDefault (Zipper.singleton ( 0, Html.text "failed", Html.text "failed" ))
+    , groupId = "examples-container"
+    }
 
 
 
@@ -146,6 +69,7 @@ model =
 -}
 type Msg
     = NoOp
+    | TabsMsg Tabs.Update.Msg
 
 
 {-| update
@@ -156,10 +80,13 @@ update msg model =
         NoOp ->
             model
 
+        TabsMsg tabsMsg ->
+            { model | tabsModel = Tabs.Update.update tabsMsg model.tabsModel }
+
 
 {-| main
 -}
-main : Program Never {} Msg
+main : Program Never Model Msg
 main =
     Html.beginnerProgram
         { model = model
