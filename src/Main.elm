@@ -9,6 +9,10 @@ import Html.CssHelpers
 import Styles exposing (..)
 import Views.Images as Images
 import Views.Inputs as Inputs
+import List.Zipper as Zipper
+import Tabs.Model
+import Tabs.Update
+import Tabs.View
 
 
 {- VIEW -}
@@ -22,17 +26,13 @@ view model =
         [ class [ Container ] ]
         [ Html.CssHelpers.style css
         , h1 [] [ text "Html.A11y View Examples" ]
-        , viewSection "Inputs" Inputs.view
-        , viewSection "Images" Images.view
+        , Html.map TabsMsg <| Tabs.View.view model.tabsModel
         ]
 
 
-viewSection : String -> Html msg -> Html msg
-viewSection header content =
-    section []
-        [ h2 [] [ text header ]
-        , content
-        ]
+sectionHeader : String -> Html msg
+sectionHeader header =
+    h2 [] [ text header ]
 
 
 
@@ -40,12 +40,25 @@ viewSection header content =
 
 
 type alias Model =
-    {}
+    { tabsModel : Tabs.Model.Model }
 
 
 model : Model
 model =
-    {}
+    { tabsModel = tabsModel }
+
+
+tabsModel : Tabs.Model.Model
+tabsModel =
+    { tabPanels =
+        [ ( "Inputs", Inputs.view )
+        , ( "Images", Images.view )
+        ]
+            |> List.indexedMap (\index ( header, content ) -> ( index, sectionHeader header, content ))
+            |> Zipper.fromList
+            |> Maybe.withDefault (Zipper.singleton ( 0, Html.text "failed", Html.text "failed" ))
+    , groupId = "examples-container"
+    }
 
 
 
@@ -56,6 +69,7 @@ model =
 -}
 type Msg
     = NoOp
+    | TabsMsg Tabs.Update.Msg
 
 
 {-| update
@@ -66,10 +80,13 @@ update msg model =
         NoOp ->
             model
 
+        TabsMsg tabsMsg ->
+            { model | tabsModel = Tabs.Update.update tabsMsg model.tabsModel }
+
 
 {-| main
 -}
-main : Program Never {} Msg
+main : Program Never Model Msg
 main =
     Html.beginnerProgram
         { model = model
