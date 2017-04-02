@@ -24,8 +24,8 @@ type Classes
 
 snippets : List Snippet
 snippets =
-    [ Css.class Container
-        [ margin2 zero (px 20) ]
+    [ Css.class Container [ margin2 zero (px 20) ]
+    , Css.selector "img" [ height (px 200), width (px 200) ]
     ]
 
 
