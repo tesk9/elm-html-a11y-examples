@@ -7,6 +7,7 @@ module Main exposing (main)
 import Html exposing (..)
 import Html.CssHelpers
 import Styles exposing (..)
+import Views.Images as Images
 import Views.Inputs as Inputs
 
 
@@ -21,8 +22,16 @@ view model =
         [ class [ Container ] ]
         [ Html.CssHelpers.style css
         , h1 [] [ text "Html.A11y View Examples" ]
-        , h2 [] [ text "Inputs" ]
-        , Inputs.view
+        , viewSection "Inputs" Inputs.view
+        , viewSection "Images" Images.view
+        ]
+
+
+viewSection : String -> Html msg -> Html msg
+viewSection header content =
+    section []
+        [ h2 [] [ text header ]
+        , content
         ]
 
 
